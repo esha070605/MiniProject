@@ -22,7 +22,7 @@ interface ChatTabProps {
 }
 
 export default function ChatTab({ pendingReportText, clearPendingReport, sessions, setSessions, activeSessionId, setActiveSessionId }: ChatTabProps) {
-  const apiKey = 'sk_m1imoo4v_A16pmPR579gE75vHtz918B5S';
+  const apiKey = process.env.NEXT_PUBLIC_SARVAM_API_KEY || 'sk_m1imoo4v_A16pmPR579gE75vHtz918B5S';
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
