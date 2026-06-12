@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-background: #0d1a26;
+  --color-foreground: #ededed;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.glass-panel {
+  background: rgba(18, 38, 56, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(127, 179, 200, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.medical-badges span {
+  background: rgba(26, 155, 191, 0.15);
+  border: 1px solid rgba(26, 155, 191, 0.35);
+  padding: 0.35rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #7ecae0;
+}
+
+.chat-bubble-user {
+  background: rgba(26, 155, 191, 0.15);
+  border: 1px solid rgba(26, 155, 191, 0.25);
+  color: #e8f4f8;
+  border-radius: 12px 12px 0 12px;
+  padding: 1rem 1.25rem;
+}
+
+.chat-bubble-ai {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d1e3ea;
+  border-radius: 12px 12px 12px 0;
+  padding: 1rem 1.25rem;
+}
+
+.input-field {
+  background: rgba(10, 20, 30, 0.6) !important;
+  border: 1px solid rgba(127, 179, 200, 0.25) !important;
+  color: #e8f4f8 !important;
+  border-radius: 8px !important;
+}
+
+.input-field:focus {
+  border-color: #3498db !important;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2) !important;
+  outline: none !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1a9bbf 0%, #2980b9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e8f4f8;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.tabs-header button {
+  border-bottom: 2px solid transparent;
+  color: #7fb3c8;
+}
+
+.tabs-header button.active {
+  border-bottom: 2px solid #3498db;
+  color: #e8f4f8;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(127, 179, 200, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 179, 200, 0.5);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 179, 200, 0.3) rgba(0, 0, 0, 0.1);
 }
