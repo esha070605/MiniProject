@@ -36,24 +36,24 @@ export default function LandingPage({ onLogin, onRegister }: LandingPageProps) {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 py-5 z-20"
+        className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 md:px-8 py-4 md:py-5 z-20"
       >
         <div className="flex items-center gap-2">
           <Stethoscope className="text-cyan-400" size={22} />
           <span className="text-lg font-bold tracking-wide text-cyan-300">Qureon</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <button
             id="nav-login-btn"
             onClick={onLogin}
-            className="px-4 py-1.5 text-sm font-medium text-cyan-300 border border-cyan-700 rounded-lg hover:bg-cyan-900/30 transition-all"
+            className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-cyan-300 border border-cyan-700 rounded-lg hover:bg-cyan-900/30 transition-all"
           >
             Login
           </button>
           <button
             id="nav-register-btn"
             onClick={onRegister}
-            className="px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg hover:brightness-110 transition-all"
+            className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg hover:brightness-110 transition-all"
           >
             Register
           </button>
@@ -61,17 +61,17 @@ export default function LandingPage({ onLogin, onRegister }: LandingPageProps) {
       </motion.nav>
 
       {/* Hero content */}
-      <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 py-20">
+      <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 py-20 max-w-full">
 
         {/* Badge — appears at 0.3s */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3, ease: 'easeOut' }}
-          className="mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-700/60 bg-cyan-900/20 text-cyan-300 text-sm font-medium"
+          className="mb-6 inline-flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-full border border-cyan-700/60 bg-cyan-900/20 text-cyan-300 text-xs md:text-sm font-medium max-w-[90vw] text-center"
         >
-          <Zap size={14} className="text-cyan-400" />
-          AI-Powered Health Intelligence Platform
+          <Zap size={13} className="text-cyan-400 flex-shrink-0" />
+          <span>AI-Powered Health Intelligence Platform</span>
         </motion.div>
 
         {/* Main heading "Qureon" — appears at 0.6s */}

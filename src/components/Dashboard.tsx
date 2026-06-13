@@ -100,7 +100,7 @@ export default function Dashboard({ user }: DashboardProps) {
       </div>
       
       {/* Main Content Pane */}
-      <div className="flex-1 glass-panel rounded-none md:rounded-xl border-x-0 md:border border-y-0 md:border p-4 md:p-6 h-full flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 glass-panel rounded-none md:rounded-xl border-x-0 md:border border-y-0 md:border p-4 md:p-6 md:h-full flex flex-col min-h-0 overflow-hidden">
         
         {/* Navigation Tabs Header */}
         <div className="flex border-b border-gray-700 mb-6 tabs-header overflow-x-auto scrollbar-none">

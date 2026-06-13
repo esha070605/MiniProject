@@ -178,7 +178,7 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {messages.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
           <div className="text-5xl mb-4">💬</div>
@@ -226,7 +226,7 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
         </div>
       )}
 
-      <div className="mt-4 pt-4 border-t border-gray-700">
+      <div className="mt-4 pt-4 pb-4 md:pb-0 border-t border-gray-700">
         <form 
           className="flex gap-2 items-center"
           onSubmit={e => { e.preventDefault(); handleSendMessage(); }}

@@ -41,7 +41,7 @@ MULTILINGUAL SUPPORT:
 
 export async function POST(req: Request) {
   try {
-    const { messages, apiKey, model = "sarvam-m" } = await req.json();
+    const { messages, apiKey, model = "sarvam-30b" } = await req.json();
 
     if (!apiKey) {
       return NextResponse.json({ error: 'API Key is required' }, { status: 400 });
