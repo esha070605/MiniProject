@@ -37,7 +37,7 @@ export default function Home() {
     return (
       <main className="h-screen bg-[#0d1a26] text-white relative overflow-hidden">
         <ParticleBackground />
-        <div className="relative z-10 p-4 md:p-8 h-full max-w-7xl mx-auto flex flex-col">
+        <div className="relative z-10 p-0 md:p-8 h-full max-w-7xl mx-auto flex flex-col">
           <Dashboard user={user} />
         </div>
       </main>

@@ -2,7 +2,7 @@
 
 import { User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { LogOut, Plus, MessageSquare, Stethoscope } from 'lucide-react';
+import { LogOut, Plus, MessageSquare, Stethoscope, X } from 'lucide-react';
 import { ChatSession } from './Dashboard';
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ interface SidebarProps {
   activeSessionId: string;
   setActiveSessionId: (id: string) => void;
   onNewChat: () => void;
+  onClose?: () => void;
 }
 
 export default function Sidebar({
@@ -18,14 +19,25 @@ export default function Sidebar({
   sessions,
   activeSessionId,
   setActiveSessionId,
-  onNewChat
+  onNewChat,
+  onClose
 }: SidebarProps) {
   return (
     <div className="w-full md:w-72 glass-panel p-5 flex flex-col gap-6 h-full overflow-y-auto">
       {/* Qureon Brand */}
-      <div className="flex items-center gap-2 pb-1">
-        <Stethoscope className="text-cyan-400" size={20} />
-        <span className="text-base font-bold tracking-wide text-cyan-300">Qureon</span>
+      <div className="flex items-center justify-between pb-1">
+        <div className="flex items-center gap-2">
+          <Stethoscope className="text-cyan-400" size={20} />
+          <span className="text-base font-bold tracking-wide text-cyan-300">Qureon</span>
+        </div>
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="md:hidden text-gray-400 hover:text-white p-1 hover:bg-gray-800/50 rounded-lg transition-colors"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       <div className="flex justify-between items-center">
@@ -63,7 +75,10 @@ export default function Sidebar({
             sessions.map(session => (
               <button
                 key={session.id}
-                onClick={() => setActiveSessionId(session.id)}
+                onClick={() => {
+                  setActiveSessionId(session.id);
+                  if (onClose) onClose();
+                }}
                 className={`w-full text-left p-2.5 rounded-lg text-sm flex items-center gap-2 transition-colors ${
                   activeSessionId === session.id 
                     ? 'bg-cyan-900/40 text-cyan-300 border border-cyan-800/50' 
