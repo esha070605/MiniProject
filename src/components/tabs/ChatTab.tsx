@@ -27,9 +27,62 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Detect language switch commands from user input
+  const detectLanguageSwitch = (text: string): string | null => {
+    const lower = text.toLowerCase().trim();
+    const langMap: Record<string, string> = {
+      // English
+      'english': 'English', 'in english': 'English', 'tell me in english': 'English',
+      'tell the same in english': 'English', 'say that in english': 'English',
+      'switch to english': 'English', 'switch back to english': 'English',
+      'now english': 'English', 'now tell me in english': 'English',
+      'reply in english': 'English', 'respond in english': 'English',
+      // Hindi
+      'hindi': 'Hindi', 'in hindi': 'Hindi', 'tell me in hindi': 'Hindi',
+      'speak in hindi': 'Hindi', 'switch to hindi': 'Hindi', 'reply in hindi': 'Hindi',
+      'hindi mein': 'Hindi', 'hindi mein bolo': 'Hindi', 'hindi me bolo': 'Hindi',
+      // Tamil
+      'tamil': 'Tamil', 'in tamil': 'Tamil', 'tell me in tamil': 'Tamil',
+      'speak in tamil': 'Tamil', 'switch to tamil': 'Tamil', 'reply in tamil': 'Tamil',
+      'now tell me in tamil': 'Tamil',
+      // Telugu
+      'telugu': 'Telugu', 'in telugu': 'Telugu', 'tell me in telugu': 'Telugu',
+      'speak in telugu': 'Telugu', 'switch to telugu': 'Telugu', 'reply in telugu': 'Telugu',
+      // Kannada
+      'kannada': 'Kannada', 'in kannada': 'Kannada', 'tell me in kannada': 'Kannada',
+      'speak in kannada': 'Kannada', 'switch to kannada': 'Kannada',
+      // Marathi
+      'marathi': 'Marathi', 'in marathi': 'Marathi', 'tell me in marathi': 'Marathi',
+      'speak in marathi': 'Marathi', 'switch to marathi': 'Marathi',
+      // Bengali
+      'bengali': 'Bengali', 'in bengali': 'Bengali', 'tell me in bengali': 'Bengali',
+      'speak in bengali': 'Bengali', 'bangla': 'Bengali', 'in bangla': 'Bengali',
+      // Gujarati
+      'gujarati': 'Gujarati', 'in gujarati': 'Gujarati', 'tell me in gujarati': 'Gujarati',
+      // Punjabi
+      'punjabi': 'Punjabi', 'in punjabi': 'Punjabi', 'tell me in punjabi': 'Punjabi',
+      // Malayalam
+      'malayalam': 'Malayalam', 'in malayalam': 'Malayalam', 'tell me in malayalam': 'Malayalam',
+      // Urdu
+      'urdu': 'Urdu', 'in urdu': 'Urdu', 'tell me in urdu': 'Urdu',
+      // French
+      'french': 'French', 'in french': 'French', 'tell me in french': 'French',
+      // Spanish
+      'spanish': 'Spanish', 'in spanish': 'Spanish', 'tell me in spanish': 'Spanish',
+    };
+    // Check for exact or contained match
+    for (const [pattern, lang] of Object.entries(langMap)) {
+      if (lower === pattern || lower.includes(pattern)) {
+        return lang;
+      }
+    }
+    return null;
+  };
 
   const currentSession = sessions.find(s => s.id === activeSessionId) || { id: '', title: 'New Chat', messages: [], updatedAt: Date.now() };
   const messages = currentSession.messages;
@@ -139,6 +192,13 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   const handleSendMessage = async (text: string = input) => {
     if (!text.trim() || !apiKey) return;
 
+    // Detect if the user is switching language
+    const detectedLang = detectLanguageSwitch(text);
+    const activeLang = detectedLang || currentLanguage;
+    if (detectedLang) {
+      setCurrentLanguage(detectedLang);
+    }
+
     const newMessages = [...messages, { role: 'user', content: text } as Message];
     const workingSessionId = updateSessionMessages(newMessages, activeSessionId);
     setInput('');
@@ -154,10 +214,18 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
         apiMessages = apiMessages.slice(1);
       }
 
+      // Inject language override as the last system-level message so it always wins
+      const langOverride = activeLang
+        ? [{ role: 'user', content: `[SYSTEM LANGUAGE OVERRIDE: You MUST respond ONLY in ${activeLang} for this and all future messages. Do NOT use any other language regardless of what language previous messages were in.]` },
+           { role: 'assistant', content: `Understood. I will now respond only in ${activeLang}.` }]
+        : [];
+
+      const finalMessages = [...langOverride, ...apiMessages];
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, apiKey })
+        body: JSON.stringify({ messages: finalMessages, apiKey })
       });
 
       const data = await res.json();
