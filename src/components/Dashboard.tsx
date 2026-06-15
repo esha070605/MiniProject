@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Sidebar from './Sidebar';
@@ -29,9 +29,26 @@ export default function Dashboard({ user }: DashboardProps) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>('');
 
+  // Load active tab from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('dashboard_active_tab');
+      if (savedTab) {
+        setActiveTab(savedTab);
+      }
+    }
+  }, []);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dashboard_active_tab', tab);
+    }
+  };
+
   const handleReportAnalyzed = (text: string) => {
     setPendingReportText(text);
-    setActiveTab('chat');
+    handleTabChange('chat');
   };
 
   return (
@@ -106,19 +123,19 @@ export default function Dashboard({ user }: DashboardProps) {
         <div className="flex border-b border-gray-700 mb-6 tabs-header overflow-x-auto scrollbar-none">
           <button 
             className={`px-4 py-3 font-medium flex items-center gap-2 whitespace-nowrap text-sm md:text-base ${activeTab === 'chat' ? 'active' : ''}`}
-            onClick={() => setActiveTab('chat')}
+            onClick={() => handleTabChange('chat')}
           >
             <MessageSquare size={16} /> Health Chat
           </button>
           <button 
             className={`px-4 py-3 font-medium flex items-center gap-2 whitespace-nowrap text-sm md:text-base ${activeTab === 'report' ? 'active' : ''}`}
-            onClick={() => setActiveTab('report')}
+            onClick={() => handleTabChange('report')}
           >
             <FileText size={16} /> Analyze Medical Report
           </button>
           <button 
             className={`px-4 py-3 font-medium flex items-center gap-2 whitespace-nowrap text-sm md:text-base ${activeTab === 'alert' ? 'active' : ''}`}
-            onClick={() => setActiveTab('alert')}
+            onClick={() => handleTabChange('alert')}
           >
             <Bell size={16} /> Alert Center
           </button>
