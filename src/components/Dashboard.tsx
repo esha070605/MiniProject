@@ -11,6 +11,7 @@ import { MessageSquare, FileText, Bell, Menu, Plus, LogOut, Stethoscope } from '
 
 interface DashboardProps {
   user: User;
+  isAdmin: boolean;
 }
 
 export interface ChatSession {
@@ -20,7 +21,7 @@ export interface ChatSession {
   updatedAt: number;
 }
 
-export default function Dashboard({ user }: DashboardProps) {
+export default function Dashboard({ user, isAdmin }: DashboardProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const [pendingReportText, setPendingReportText] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -33,13 +34,16 @@ export default function Dashboard({ user }: DashboardProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTab = localStorage.getItem('dashboard_active_tab');
-      if (savedTab) {
+      // If not admin and saved tab was alert, fall back to chat
+      if (savedTab && (savedTab !== 'alert' || isAdmin)) {
         setActiveTab(savedTab);
       }
     }
-  }, []);
+  }, [isAdmin]);
 
   const handleTabChange = (tab: string) => {
+    // Guard: non-admins cannot access the alert tab
+    if (tab === 'alert' && !isAdmin) return;
     setActiveTab(tab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('dashboard_active_tab', tab);
@@ -133,12 +137,16 @@ export default function Dashboard({ user }: DashboardProps) {
           >
             <FileText size={16} /> Analyze Medical Report
           </button>
-          <button 
-            className={`px-4 py-3 font-medium flex items-center gap-2 whitespace-nowrap text-sm md:text-base ${activeTab === 'alert' ? 'active' : ''}`}
-            onClick={() => handleTabChange('alert')}
-          >
-            <Bell size={16} /> Alert Center
-          </button>
+          {/* Alert Center tab — only visible to admins */}
+          {isAdmin && (
+            <button 
+              className={`px-4 py-3 font-medium flex items-center gap-2 whitespace-nowrap text-sm md:text-base ${activeTab === 'alert' ? 'active' : ''}`}
+              onClick={() => handleTabChange('alert')}
+            >
+              <Bell size={16} /> Alert Center
+              <span className="ml-1 text-xs bg-red-500/80 text-white px-1.5 py-0.5 rounded-full font-semibold">Admin</span>
+            </button>
+          )}
         </div>
 
         {/* Tab Content Panels */}

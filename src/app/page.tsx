@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { isAdminUser } from '@/lib/adminConfig';
 import AuthScreen from '@/components/AuthScreen';
 import Dashboard from '@/components/Dashboard';
 import ParticleBackground from '@/components/ParticleBackground';
@@ -34,11 +35,12 @@ export default function Home() {
 
   // Authenticated → go straight to dashboard
   if (user) {
+    const adminStatus = isAdminUser(user.email);
     return (
       <main className="h-screen bg-[#0d1a26] text-white relative overflow-hidden">
         <ParticleBackground />
         <div className="relative z-10 p-0 md:p-8 h-full max-w-7xl mx-auto flex flex-col">
-          <Dashboard user={user} />
+          <Dashboard user={user} isAdmin={adminStatus} />
         </div>
       </main>
     );
