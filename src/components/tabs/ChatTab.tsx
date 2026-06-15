@@ -19,10 +19,14 @@ interface ChatTabProps {
   setSessions: React.Dispatch<React.SetStateAction<ChatSession[]>>;
   activeSessionId: string;
   setActiveSessionId: (id: string) => void;
+  userId: string;
 }
 
-export default function ChatTab({ pendingReportText, clearPendingReport, sessions, setSessions, activeSessionId, setActiveSessionId }: ChatTabProps) {
+export default function ChatTab({ pendingReportText, clearPendingReport, sessions, setSessions, activeSessionId, setActiveSessionId, userId }: ChatTabProps) {
   const apiKey = process.env.NEXT_PUBLIC_SARVAM_API_KEY || 'sk_m1imoo4v_A16pmPR579gE75vHtz918B5S';
+  // Per-user localStorage keys — isolates chat history per account
+  const SESSIONS_KEY = `chatbot_sessions_${userId}`;
+  const ACTIVE_ID_KEY = `chatbot_active_session_id_${userId}`;
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -88,10 +92,10 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   const messages = currentSession.messages;
 
   useEffect(() => {
-    // Load sessions from local storage on mount
+    // Load THIS user's sessions from localStorage on mount
     if (typeof window !== 'undefined') {
-      const savedSessions = localStorage.getItem('chatbot_sessions');
-      const savedActiveId = localStorage.getItem('chatbot_active_session_id');
+      const savedSessions = localStorage.getItem(SESSIONS_KEY);
+      const savedActiveId = localStorage.getItem(ACTIVE_ID_KEY);
       if (savedSessions) {
         try {
           const parsed = JSON.parse(savedSessions);
@@ -104,6 +108,10 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
         } catch (e) {
           console.error("Failed to parse saved sessions");
         }
+      } else {
+        // New user — start with a completely fresh empty state
+        setSessions([]);
+        setActiveSessionId('');
       }
       setIsLoaded(true);
 
@@ -133,11 +141,11 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
 
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem('chatbot_sessions', JSON.stringify(sessions));
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
     if (activeSessionId) {
-      localStorage.setItem('chatbot_active_session_id', activeSessionId);
+      localStorage.setItem(ACTIVE_ID_KEY, activeSessionId);
     } else {
-      localStorage.removeItem('chatbot_active_session_id');
+      localStorage.removeItem(ACTIVE_ID_KEY);
     }
   }, [sessions, activeSessionId, isLoaded]);
 

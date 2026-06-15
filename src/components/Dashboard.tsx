@@ -159,6 +159,7 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
               setSessions={setSessions}
               activeSessionId={activeSessionId}
               setActiveSessionId={setActiveSessionId}
+              userId={user.uid}
             />
           )}
           {activeTab === 'report' && <ReportTab onReportAnalyzed={handleReportAnalyzed} />}
