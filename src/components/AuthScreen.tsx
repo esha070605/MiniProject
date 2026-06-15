@@ -5,7 +5,8 @@ import { auth, googleProvider } from '@/lib/firebase';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signInWithPopup 
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { LogIn, UserPlus, Stethoscope, ArrowLeft } from 'lucide-react';
 
@@ -63,6 +64,29 @@ export default function AuthScreen({ initialMode = 'login', onBackToLanding }: A
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMessage('Password reset email sent! Please check your inbox.');
+    } catch (err: any) {
+      console.error("Firebase Password Reset Error:", err.code, err.message);
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else {
+        setError(err.message || 'Failed to send password reset email.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <div className="glass-panel p-8 w-full max-w-md">
@@ -100,7 +124,18 @@ export default function AuthScreen({ initialMode = 'login', onBackToLanding }: A
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-300">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-300">Password</label>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-cyan-400 hover:underline focus:outline-none"
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
             <input 
               type="password" 
               required
