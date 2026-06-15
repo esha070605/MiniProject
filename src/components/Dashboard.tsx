@@ -25,6 +25,7 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const [pendingReportText, setPendingReportText] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   // Chat Sessions State
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -111,6 +112,8 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
           sessions={sessions}
           activeSessionId={activeSessionId}
           setActiveSessionId={setActiveSessionId}
+          selectedLanguage={selectedLanguage}
+          setSelectedLanguage={setSelectedLanguage}
           onNewChat={() => {
             setActiveSessionId('');
             setIsSidebarOpen(false);
@@ -160,6 +163,7 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
               activeSessionId={activeSessionId}
               setActiveSessionId={setActiveSessionId}
               userId={user.uid}
+              selectedLanguage={selectedLanguage}
             />
           )}
           {activeTab === 'report' && <ReportTab onReportAnalyzed={handleReportAnalyzed} />}
@@ -169,3 +173,4 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
     </div>
   );
 }
+

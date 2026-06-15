@@ -20,9 +20,10 @@ interface ChatTabProps {
   activeSessionId: string;
   setActiveSessionId: (id: string) => void;
   userId: string;
+  selectedLanguage: string | null;
 }
 
-export default function ChatTab({ pendingReportText, clearPendingReport, sessions, setSessions, activeSessionId, setActiveSessionId, userId }: ChatTabProps) {
+export default function ChatTab({ pendingReportText, clearPendingReport, sessions, setSessions, activeSessionId, setActiveSessionId, userId, selectedLanguage: dropdownLanguage }: ChatTabProps) {
   const apiKey = process.env.NEXT_PUBLIC_SARVAM_API_KEY || 'sk_m1imoo4v_A16pmPR579gE75vHtz918B5S';
   // Per-user localStorage keys — isolates chat history per account
   const SESSIONS_KEY = `chatbot_sessions_${userId}`;
@@ -31,6 +32,8 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  // currentLanguage: set by mid-chat commands; dropdownLanguage: set by sidebar selector
+  // mid-chat override takes priority over dropdown if explicitly set
   const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -200,9 +203,10 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   const handleSendMessage = async (text: string = input) => {
     if (!text.trim() || !apiKey) return;
 
-    // Detect if the user is switching language
+    // Detect if the user is switching language via mid-chat command
     const detectedLang = detectLanguageSwitch(text);
-    const activeLang = detectedLang || currentLanguage;
+    // Priority: mid-chat command > previous mid-chat setting > sidebar dropdown
+    const activeLang = detectedLang || currentLanguage || dropdownLanguage;
     if (detectedLang) {
       setCurrentLanguage(detectedLang);
     }
