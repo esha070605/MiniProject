@@ -39,13 +39,19 @@ export default function AuthScreen({ initialMode = 'login', onBackToLanding }: A
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
       if (err.code === 'auth/operation-not-allowed') {
-        setError('Email/Password login is not enabled in your Firebase Console.');
+        setError('Email/Password login is not enabled. Please use "Continue with Google" or contact support.');
       } else if (err.code === 'auth/weak-password') {
         setError('Password should be at least 6 characters.');
       } else if (err.code === 'auth/email-already-in-use') {
-        setError('This email is already registered. Please login instead.');
+        setError('This email is already registered. Please switch to Login below.');
+      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError('Incorrect email or password. If you forgot your password, click "Forgot Password?" above.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please reset your password or try again later.');
       } else {
-        setError(err.message || 'Authentication failed');
+        setError('Authentication failed. Please try again.');
       }
     } finally {
       setLoading(false);
