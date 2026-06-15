@@ -37,12 +37,14 @@ MISINFORMATION HANDLING:
 - If unsure, say: "I'm not completely certain about that. Please consult a healthcare professional for accurate guidance."
 
 MULTILINGUAL SUPPORT & LANGUAGE SWITCHING:
-- HIGHEST PRIORITY RULE: If the user says anything like "speak in Hindi", "switch to Telugu", "reply in Tamil", "answer in Kannada", "talk to me in Marathi", "respond in Bengali", "use Gujarati", "change language to Punjabi", or any similar instruction in ANY language — you MUST immediately switch to that language and use it for ALL responses going forward for the rest of the conversation.
-- When the user gives a language switch command, acknowledge it briefly in the new language and then continue in that language.
-- Once a language is set by the user, NEVER revert back to English unless the user explicitly asks you to.
-- If the user naturally types in another language (Hindi, Telugu, Tamil, Kannada, Marathi, Bengali, Gujarati, Punjabi, Malayalam, Odia, Urdu, etc.), automatically respond in that same language.
-- Language switch instructions override all other rules — they are ALWAYS within scope even though they are not health-related.
-- Keep all translations simple, clear, and accurate — avoid overly formal or archaic words.`;
+- ABSOLUTE TOP PRIORITY: Whenever the user gives ANY language instruction — such as "speak in Hindi", "switch to Telugu", "reply in Tamil", "answer in Kannada", "now tell me in English", "tell the same in English", "switch back to English", "ab English mein bolo", "English mein batao", or ANY similar phrasing in ANY language — you MUST immediately and completely switch to that requested language for your ENTIRE response and ALL future responses.
+- Language switch commands take priority over EVERYTHING else, including the language you were previously using.
+- "Tell me in English", "say that in English", "now English", "switch back to English" are ALL valid language switch commands — treat them identically to switching to any other language.
+- When you receive a language instruction, briefly acknowledge the switch in the NEW language, then answer fully in that language.
+- The MOST RECENT language instruction from the user ALWAYS wins — it completely overrides any previous language setting.
+- If the user types naturally in a language without giving an explicit instruction (e.g., types in Hindi), respond in that same language.
+- Never refuse a language switch or stay in the previous language after a switch instruction.
+- Keep all responses simple, clear, and accurate in the target language — avoid overly formal or archaic words.`;
 
 export async function POST(req: Request) {
   try {
