@@ -68,7 +68,7 @@ Integrating AI into public health systems acts as a front-line filter. By answer
 *   **FR-1: Authentication:** Users must register and log in securely. Google Sign-In and Password Reset flows must be supported.
 *   **FR-2: Dynamic Health Chat:** Users must be able to ask health-related questions. Responses must include formatting, medical disclaimers, and refuse off-topic inquiries.
 *   **FR-3: Report Analysis:** Users must be able to upload PDF medical reports. The system must extract text (using OCR if necessary) and summarize it automatically.
-*   **FR-4: Isolated Session History:** The system must save user chats locally, namespaced by user ID, ensuring privacy across multiple logins.
+*   **FR-4: Isolated Session History:** The system must save user chats securely in a remote database, queried by user ID, ensuring privacy across multiple logins and multiple devices.
 *   **FR-5: Multilingual Interface:** The application must allow selecting preferred languages via a dropdown, or switch naturally in chat.
 *   **FR-6: Admin Outbreak Alerts:** Admin accounts must have access to a dashboard tab to send WhatsApp and SMS alerts using Twilio.
 
@@ -111,7 +111,7 @@ Integrating AI into public health systems acts as a front-line filter. By answer
 +-------------------------------+         +-----------------------------+
 |        DATABASE & AUTH        |         |        EXTERNAL SERVICES    |
 |     Firebase Auth Client      |         |   - Sarvam AI Chat API      |
-|     LocalStorage Engine       |         |   - Twilio SMS/WA API       |
+|     Cloud Firestore DB        |         |   - Twilio SMS/WA API       |
 +-------------------------------+         +-----------------------------+
 ```
 
@@ -146,7 +146,7 @@ Integrating AI into public health systems acts as a front-line filter. By answer
 ```
 User (Browser) 
   --> Interacts with React Components (ChatTab, ReportTab, AlertTab)
-  --> LocalStorage stores UID-namespaced chat sessions
+  --> Firestore stores user-isolated chat sessions
   --> Firebase Auth manages login tokens
   --> Serverless Next.js API Routes:
        |--> /api/chat   --> Checks API key --> Sarvam AI completions API
@@ -155,7 +155,7 @@ User (Browser)
 
 ### 5.1 End-to-End Workflow
 1.  **Authentication:** The user logs in via Firebase. The page loads the unique `user.uid`.
-2.  **Chat Session Loading:** The app reads `localStorage.getItem('chatbot_sessions_' + uid)` and renders the user's history.
+2.  **Chat Session Loading:** The app listens to Firestore collection updates matching the `userId` via `onSnapshot` and renders the user's history in real-time.
 3.  **Prompt Dispatch:** The user types a query or selects a dropdown language. The React state compiles the message array.
 4.  **Backend Processing:** Next.js `/api/chat` receives the message array, applies the system restrictions, calls Sarvam AI, cleanses reasoning tokens, and returns the response.
 5.  **Output Display:** The client renders markdown, updating history records in real-time.
@@ -347,9 +347,9 @@ Sensitive keys are injected through the hosting provider's panel:
 *   **Root Cause:** Flat scanned images in PDF files lack text data.
 *   **Final Solution:** Integrated client-side OCR using `Tesseract.js` as an automatic fallback when initial text extraction yields empty arrays.
 
-### 12.3 Multi-user Session Leakage
-*   **Root Cause:** Universal `localStorage` keys shared across all logins.
-*   **Final Solution:** Namespaced all storage operations using Firebase `userId` (e.g. `chatbot_sessions_${userId}`).
+### 12.3 Multi-user Session Leakage & Synchronization
+*   **Root Cause:** Universal local keys shared across logins, and inability to view chats across different devices.
+*   **Final Solution:** Migrated from local storage to Firebase Cloud Firestore. Implemented server-side user-isolation where sessions are queried strictly matching the authenticated Firebase `userId` via real-time `onSnapshot` listeners.
 
 ---
 
