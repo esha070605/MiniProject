@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, Trash2, Mic } from 'lucide-react';
 import { EXAMPLE_QUESTIONS } from '@/lib/constants';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -25,13 +27,9 @@ interface ChatTabProps {
 
 export default function ChatTab({ pendingReportText, clearPendingReport, sessions, setSessions, activeSessionId, setActiveSessionId, userId, selectedLanguage: dropdownLanguage }: ChatTabProps) {
   const apiKey = process.env.NEXT_PUBLIC_SARVAM_API_KEY || 'sk_m1imoo4v_A16pmPR579gE75vHtz918B5S';
-  // Per-user localStorage keys — isolates chat history per account
-  const SESSIONS_KEY = `chatbot_sessions_${userId}`;
-  const ACTIVE_ID_KEY = `chatbot_active_session_id_${userId}`;
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
   // currentLanguage: set by mid-chat commands; dropdownLanguage: set by sidebar selector
   // mid-chat override takes priority over dropdown if explicitly set
   const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
@@ -95,29 +93,7 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
   const messages = currentSession.messages;
 
   useEffect(() => {
-    // Load THIS user's sessions from localStorage on mount
     if (typeof window !== 'undefined') {
-      const savedSessions = localStorage.getItem(SESSIONS_KEY);
-      const savedActiveId = localStorage.getItem(ACTIVE_ID_KEY);
-      if (savedSessions) {
-        try {
-          const parsed = JSON.parse(savedSessions);
-          setSessions(parsed);
-          if (savedActiveId && parsed.find((s: ChatSession) => s.id === savedActiveId)) {
-            setActiveSessionId(savedActiveId);
-          } else if (parsed.length > 0) {
-            setActiveSessionId(parsed[0].id);
-          }
-        } catch (e) {
-          console.error("Failed to parse saved sessions");
-        }
-      } else {
-        // New user — start with a completely fresh empty state
-        setSessions([]);
-        setActiveSessionId('');
-      }
-      setIsLoaded(true);
-
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
@@ -141,16 +117,6 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-    if (activeSessionId) {
-      localStorage.setItem(ACTIVE_ID_KEY, activeSessionId);
-    } else {
-      localStorage.removeItem(ACTIVE_ID_KEY);
-    }
-  }, [sessions, activeSessionId, isLoaded]);
 
   useEffect(() => {
     scrollToBottom();
@@ -185,18 +151,32 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
 
   const updateSessionMessages = (newMessages: Message[], currentSessionId: string): string => {
     let sessionId = currentSessionId;
+    let title = 'New Chat';
+
     if (!sessionId) {
       sessionId = Date.now().toString();
       setActiveSessionId(sessionId);
       
       // Auto-generate title from first user message
       const firstUserMessage = newMessages.find(m => m.role === 'user')?.content || 'New Chat';
-      const title = firstUserMessage.length > 25 ? firstUserMessage.substring(0, 25) + '...' : firstUserMessage;
-
-      setSessions(prev => [{ id: sessionId, title, messages: newMessages, updatedAt: Date.now() }, ...prev]);
+      title = firstUserMessage.length > 25 ? firstUserMessage.substring(0, 25) + '...' : firstUserMessage;
     } else {
-      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: newMessages, updatedAt: Date.now() } : s));
+      const existing = sessions.find(s => s.id === sessionId);
+      if (existing) {
+        title = existing.title;
+      }
     }
+
+    // Write to Firestore database asynchronously
+    setDoc(doc(db, 'sessions', sessionId), {
+      userId,
+      title,
+      messages: newMessages,
+      updatedAt: Date.now()
+    }).catch(err => {
+      console.error("Failed to save session to Firestore:", err);
+    });
+
     return sessionId;
   };
 
@@ -251,10 +231,18 @@ export default function ChatTab({ pendingReportText, clearPendingReport, session
     }
   };
 
-  const deleteSession = () => {
-    const updatedSessions = sessions.filter(s => s.id !== activeSessionId);
-    setSessions(updatedSessions);
-    setActiveSessionId(updatedSessions.length > 0 ? updatedSessions[0].id : '');
+  const deleteSession = async () => {
+    if (!activeSessionId) return;
+    const targetId = activeSessionId;
+    const remainingSessions = sessions.filter(s => s.id !== targetId);
+    
+    setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : '');
+
+    try {
+      await deleteDoc(doc(db, 'sessions', targetId));
+    } catch (err) {
+      console.error("Failed to delete session from Firestore:", err);
+    }
   };
 
   return (

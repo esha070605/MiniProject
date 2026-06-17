@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import Sidebar from './Sidebar';
 import ChatTab from './tabs/ChatTab';
 import ReportTab from './tabs/ReportTab';
@@ -27,9 +28,62 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
-  // Chat Sessions State
+  // Chat Sessions State loaded from Firestore
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>('');
+
+  // Subscribe to user's chat sessions in Firestore in real-time
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'sessions'),
+      where('userId', '==', user.uid),
+      orderBy('updatedAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const loadedSessions: ChatSession[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        loadedSessions.push({
+          id: doc.id,
+          title: data.title || 'New Chat',
+          messages: data.messages || [],
+          updatedAt: data.updatedAt || Date.now()
+        });
+      });
+      setSessions(loadedSessions);
+
+      // Auto-load active session from localStorage if present and valid, else select newest
+      setActiveSessionId(prev => {
+        if (prev && loadedSessions.find(s => s.id === prev)) {
+          return prev;
+        }
+        const savedActiveId = typeof window !== 'undefined' ? localStorage.getItem(`chatbot_active_session_id_${user.uid}`) : null;
+        if (savedActiveId && loadedSessions.find(s => s.id === savedActiveId)) {
+          return savedActiveId;
+        }
+        return loadedSessions.length > 0 ? loadedSessions[0].id : '';
+      });
+    }, (error) => {
+      console.error("Firestore sessions listener error:", error);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Synchronize activeSessionId to localStorage when changed
+  const handleActiveSessionIdChange = (id: string) => {
+    setActiveSessionId(id);
+    if (typeof window !== 'undefined') {
+      if (id) {
+        localStorage.setItem(`chatbot_active_session_id_${user.uid}`, id);
+      } else {
+        localStorage.removeItem(`chatbot_active_session_id_${user.uid}`);
+      }
+    }
+  };
 
   // Load active tab from localStorage on mount
   useEffect(() => {
@@ -56,6 +110,7 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
     handleTabChange('chat');
   };
 
+
   return (
     <div className="flex flex-col md:flex-row gap-0 md:gap-6 h-full min-h-0 w-full relative">
       
@@ -76,7 +131,7 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
         <div className="flex items-center gap-2">
           <button 
             onClick={() => {
-              setActiveSessionId('');
+              handleActiveSessionIdChange('');
               setActiveTab('chat');
             }}
             className="p-1.5 rounded-lg bg-cyan-900/30 text-cyan-400 hover:bg-cyan-800/50 transition-colors"
@@ -111,11 +166,11 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
           user={user}
           sessions={sessions}
           activeSessionId={activeSessionId}
-          setActiveSessionId={setActiveSessionId}
+          setActiveSessionId={handleActiveSessionIdChange}
           selectedLanguage={selectedLanguage}
           setSelectedLanguage={setSelectedLanguage}
           onNewChat={() => {
-            setActiveSessionId('');
+            handleActiveSessionIdChange('');
             setIsSidebarOpen(false);
             setActiveTab('chat');
           }}
@@ -161,7 +216,7 @@ export default function Dashboard({ user, isAdmin }: DashboardProps) {
               sessions={sessions}
               setSessions={setSessions}
               activeSessionId={activeSessionId}
-              setActiveSessionId={setActiveSessionId}
+              setActiveSessionId={handleActiveSessionIdChange}
               userId={user.uid}
               selectedLanguage={selectedLanguage}
             />
